@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: website
+  labels:
+    app: website
+spec:
+  selector:
+    matchLabels:
+      app: website
+      tier: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: website
+        tier: frontend
+    spec:
+      containers:
+      - image: kessie/ecommerce-web
+        name: website
+        imagePullPolicy: Always
+        ports:
+          - name: http
+            containerPort: 80
+            protocol: TCP
+        # readinessProbe:
+        #   httpGet:
+        #     path: /website/api/admin/site/
+        #     port: http
+        #     httpHeaders:
+        #       - name: X-Forwarded-Proto
+        #         value: https
+        # livenessProbe:
+        #   initialDelaySeconds: 60
+        #   httpGet:
+        #     path: /website/api/admin/site/
+        #     port: http
+        #     httpHeaders:
+        #       - name: X-Forwarded-Proto
+        #         value: https
+        resources:
+          requests:
+            memory: '128Mi'
+            cpu: '100m'
+          limits:
+            memory: '256Mi'
+            cpu: '150m'
+        env:
+          - name: DB_HOST
+            value: mariadb-service
+          - name: DB_USER
+            value: ecomuser
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: website-pass
+                key: userpassword
+          - name: DB_NAME
+            value: ecomdb
